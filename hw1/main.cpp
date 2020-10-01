@@ -2,18 +2,19 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
-#include <utility>
+#include <tuple>
 #include <vector>
+
 
 using namespace std;
 
-inline double getDistance(pair<int, int> a, pair<int, int> b) {
-  return sqrt(pow(a.first - b.first, 2) + pow(a.second - b.second, 2));
+inline double getDistance(tuple<int, int, int> a, tuple<int, int, int> b) {
+  return sqrt(pow(get<1>(a) - get<1>(b), 2) + pow(get<2>(a) - get<2>(b), 2));
 }
 
-double getPathLen(vector<pair<int, int>> cities) {
+double getPathLen(vector<tuple<int, int, int>> cities) {
   double total = 0;
-  pair<int, int> prev;
+  tuple<int, int, int> prev;
   for (auto i : cities) {
     if (i != *cities.begin()) // Not the first time enter this loop
       total += getDistance(prev, i);
@@ -25,10 +26,10 @@ double getPathLen(vector<pair<int, int>> cities) {
 // Use pipeline to put in the stdin, plz
 int main() {
   int num, x, y;
-  vector<pair<int, int>> cities, cacheStatus;
+  vector<tuple<int, int, int>> cities, cacheStatus;
   double minPath = numeric_limits<double>::max();
   while (cin >> num >> x >> y)
-    cities.push_back(make_pair(x, y));
+    cities.push_back(make_tuple(num, x, y));
 
   sort(cities.begin(), cities.end());
   do {
@@ -40,7 +41,7 @@ int main() {
   } while (next_permutation(cities.begin(), cities.end()));
 
   for (auto i : cacheStatus)
-    cout << find(cities.begin(), cities.end(), i) - cities.begin() + 1 << " ";
+    cout << get<0>(i) << " ";
 
   cout << endl << "Minimal length of path: " << minPath << endl;
   return 0;
