@@ -10,12 +10,12 @@
 
 ```
 g++ -O2 -g -std=c++11 main.cpp -o main.elf
-cat readfile.txt | main.elf
+cat readfile.txt | ./main.elf
 ```
 
 
 如果你需要執行時間：
 
 ```
-time cat readfile.txt | main.elf
+time cat readfile.txt | ./main.elf
 ```
