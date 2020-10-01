@@ -5,7 +5,6 @@
 #include <tuple>
 #include <vector>
 
-
 using namespace std;
 
 inline double getDistance(tuple<int, int, int> a, tuple<int, int, int> b) {
@@ -20,6 +19,8 @@ double getPathLen(vector<tuple<int, int, int>> cities) {
       total += getDistance(prev, i);
     prev = i;
   }
+  // Back to the start point
+  total += getDistance(prev, *cities.begin());
   return total;
 }
 
