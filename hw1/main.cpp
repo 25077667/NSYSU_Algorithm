@@ -13,12 +13,11 @@ inline double getDistance(pair<int, int> a, pair<int, int> b) {
 
 double getPathLen(vector<pair<int, int>> cities) {
   double total = 0;
-  pair<int, int> prev = make_pair(0, 0);
+  pair<int, int> prev;
   for (auto i : cities) {
-    if (i != *cities.begin())
+    if (i != *cities.begin()) // Not the first time enter this loop
       total += getDistance(prev, i);
-    else
-      prev = i; // The first time enter this loop
+    prev = i;
   }
   return total;
 }
@@ -34,9 +33,10 @@ int main() {
   sort(cities.begin(), cities.end());
   do {
     auto pathLen = getPathLen(cities);
-    minPath = min(minPath, pathLen);
-    if (minPath == pathLen)
+    if (minPath > pathLen) {
       cacheStatus = cities;
+      minPath = pathLen;
+    }
   } while (next_permutation(cities.begin(), cities.end()));
 
   for (auto i : cacheStatus)
