@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <future>
 #include <iostream>
 #include <limits>
 #include <thread>
@@ -27,8 +28,7 @@ double getPathLen(vector<tuple<int, int, int>> cities)
     return total;
 }
 
-void bruteForce(vector<tuple<int, int, int>> cities,
-                vector<pair<double, vector<tuple<int, int, int>>>> result)
+auto bruteForce(vector<tuple<int, int, int>> cities)
 {
     double minPath = numeric_limits<double>::max();
     vector<tuple<int, int, int>> cacheStatus;
@@ -40,7 +40,7 @@ void bruteForce(vector<tuple<int, int, int>> cities,
         }
     } while (next_permutation(cities.begin() + 2, cities.end()));
 
-    result.at(get<0>(cities.at(1)) - 1) = make_pair(minPath, cacheStatus);
+    return make_pair(minPath, cacheStatus);
 }
 
 // Use pipeline to put in the stdin, plz
@@ -49,20 +49,20 @@ int main()
     int num, x, y;
     vector<tuple<int, int, int>> cities;
     vector<pair<double, vector<tuple<int, int, int>>>> result;
-    vector<thread> threadPool;
+    vector<future<pair<double, vector<tuple<int, int, int>>>>> threadPool;
     while (cin >> num >> x >> y)
         cities.push_back(make_tuple(num, x, y));
 
+    threadPool.resize(cities.size() - 1);
     sort(cities.begin(), cities.end());
     for (auto i = 1; i < cities.size(); i++) {
         iter_swap(cities.begin() + 1, cities.begin() + i);
-        thread t(bruteForce, cities, move(result));
+        threadPool[i - 1] = async(bruteForce, cities);
         iter_swap(cities.begin() + 1, cities.begin() + i);
-        threadPool.push_back(t);
     }
 
     for (auto iter = threadPool.begin(); iter != threadPool.end(); iter++)
-        (*iter).join();
+        result.push_back((*iter).get());
 
     sort(result.begin(), result.end());
     for (auto i : result.at(0).second)
