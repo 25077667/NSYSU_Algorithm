@@ -6,4 +6,4 @@ plot:
 	gnuplot plot.gp
 
 clean:
-	rm -f *.elf
+	rm -f *.elf output*
