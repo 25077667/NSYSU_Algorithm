@@ -66,7 +66,10 @@ int main()
 
     sort(result.begin(), result.end());
     for (auto i : result.at(0).second)
-        cout << get<0>(i) << " ";
+        cout << get<0>(i) << " " << get<1>(i) << " " << get<2>(i) << endl;
+    cout << get<0>(result.at(0).second.at(0)) << " "
+         << get<1>(result.at(0).second.at(0)) << " "
+         << get<2>(result.at(0).second.at(0)) << endl;
 
     cout << endl << "Minimal length of path: " << result.at(0).first << endl;
     return 0;
