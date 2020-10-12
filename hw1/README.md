@@ -16,11 +16,17 @@ make
 make
 ./main.elf
 ```
+or
+```
+make
+time cat "readfile.txt" | ./main.elf > output.txt
+```
 
 繪圖：
 ```
 make plot
 ```
+it can meet all the requirements of homework
 
 清理：
 ```
