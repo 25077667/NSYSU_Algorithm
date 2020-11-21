@@ -54,17 +54,12 @@ pair<double, vector<tuple<string, int, int>>> dp(
                 minPath = passCities;
             }
         }
-        if (isRecorded != traversal.end()) {
-            auto mask = 1 << current;
-            traversal[recordMask | mask].at(current) =
-                minPathLen + ((records.size()) ? getDistance(records.back(),
-                                                             cities.at(current))
-                                               : 0);
-            records.push_back(cities.at(current));
 
-            return make_pair(traversal[recordMask | mask].at(current), records);
-        } else
-            return make_pair(minPathLen, minPath);
+        auto mask = 1 << current;
+        minPath.push_back(cities.at(current));
+        traversal[recordMask | mask].at(current) =
+            getDistance(minPath.back(), cities.at(current));
+        return make_pair(traversal[recordMask | mask].at(current), minPath);
     }
 }
 
