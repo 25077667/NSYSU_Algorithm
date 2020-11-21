@@ -18,6 +18,16 @@ inline double getDistance(tuple<string, int, int> a, tuple<string, int, int> b)
     return sqrt(pow(get<1>(a) - get<1>(b), 2) + pow(get<2>(a) - get<2>(b), 2));
 }
 
+
+// Return a pair<length, order of cities>
+// @traversal: A map to keep the dp table, the key is the "viewed" cities as a 4
+//             bytes(can contain 32 cities) `recordMask`. And the value is a
+//             array of path length of each city would push_back to "viewed"
+//             cities.
+// @records: Record the current path of cities.
+// @cities: A const vector to get cities info from user.
+// @current: The current index of the city.
+// @recordMask: A mask to recording "viewed" cities.
 pair<double, vector<tuple<string, int, int>>> dp(
     map<int, array<double, MAX_CITIES>> &traversal,
     vector<tuple<string, int, int>> records,
