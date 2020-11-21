@@ -56,9 +56,10 @@ pair<double, vector<tuple<string, int, int>>> dp(
         }
 
         auto mask = 1 << current;
+        auto origBack = (minPath.size() ? minPath.back() : cities.at(current));
         minPath.push_back(cities.at(current));
         traversal[recordMask | mask].at(current) =
-            getDistance(minPath.back(), cities.at(current));
+            getDistance(origBack, cities.at(current));
         return make_pair(traversal[recordMask | mask].at(current), minPath);
     }
 }
