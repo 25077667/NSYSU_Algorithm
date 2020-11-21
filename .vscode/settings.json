@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "tuple": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "array": "cpp"
     }
 }

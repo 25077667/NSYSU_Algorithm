@@ -1,55 +1,70 @@
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <tuple>
 #include <vector>
 
+#define MAX_CITIES 16
+
 using namespace std;
 
-
-// result format: (length, path)
-// @length: A double of path length
-// @path: A vector of cities, the order of vector is the order of minimal cities
-// path
-pair<double, vector<tuple<string, int, int>>> result;
-// DP table
-map<int, double> traversal;
 
 inline double getDistance(tuple<string, int, int> a, tuple<string, int, int> b)
 {
     return sqrt(pow(get<1>(a) - get<1>(b), 2) + pow(get<2>(a) - get<2>(b), 2));
 }
 
-// Update the global variable result
-double dp(const vector<tuple<string, int, int>> &cities,
-          int current,
-          int recorded)
+pair<double, vector<tuple<string, int, int>>> dp(
+    map<int, array<double, MAX_CITIES>> &traversal,
+    vector<tuple<string, int, int>> records,
+    const vector<tuple<string, int, int>> &cities,
+    int current,
+    int recordMask)
 {
-    auto isRecorded = traversal.find(recorded);
-    if (isRecorded == traversal.end()) {  // not found
-        int mask = 1 << current;
-        int minIndex = -1;
-        traversal[recorded | mask] = numeric_limits<double>::max();
-        for (int i = 0; i < cities.size(); i++) {
-            if (i != current && recorded & (1 << i)) {
-                auto fromDP = dp(cities, i, recorded & (~mask)) +
-                              getDistance(cities.at(i), cities.at(current));
-                if (fromDP < traversal[recorded | mask]) {
-                    minIndex = i;
-                    traversal[recorded | mask] = fromDP;
-                }
+    auto isRecorded = find(traversal.begin(), traversal.end(), recordMask);
+    if (isRecorded ^ traversal.end() &&
+        ~(isRecorded->second.at(current))) {  // found record
+        return make_pair(isRecorded->second.at(current), records);
+    } else {
+        double minPathLen = numeric_limits<double>::max();
+        vector<tuple<string, int, int>> minPath;
+        while (recordMask) {
+            // The canonical algorithm is a loop counting zeros starting at the
+            // LSB until a 1-bit is encountered
+            auto ctz = __builtin_ctz(recordMask);
+            recordMask &= 1 << ctz;
+            auto [passPathLen, passCities] =
+                dp(traversal, records, cities, ctz, records);
+            if (passPathLen < minPathLen) {
+                minPathLen = passPathLen;
+                minPath = passCities;
             }
         }
-        result.second.push_back(cities.at(minIndex));
-        return traversal[recorded | current];
-    } else {
-        return isRecorded->second;
+        if (isRecorded ^ traversal.end()) {
+            auto mask = 1 << current;
+            auto toHead = getDistance(*records.begin(), cities.at(current));
+            auto toTail = getDistance(records.back(), cities.at(current));
+            if (toHead < toTail) {
+                traversal.at(recordMask | mask).at(current) =
+                    passPathLen + toHead;
+                records.insert(records.begin(), cities.at(current));
+            } else {
+                traversal.at(recordMask | mask).at(current) =
+                    passPathLen + toTail;
+                records.push_back(cities.at(current));
+            }
+            return make_pair(traversal.at(recordMask | mask).at(current),
+                             records);
+        } else
+            return make_pair(minPathLen, minPath);
     }
 }
 
-void output()
+void output(const pair<double, vector<tuple<string, int, int>>> result)
 {
     for (auto i : result.second)
         cout << get<0>(i) << " " << get<1>(i) << " " << get<2>(i) << endl;
@@ -59,10 +74,15 @@ void output()
     cout << endl << "Minimal length of path: " << result.first << endl;
 }
 
-void init(int numCities)
+// Suppose starts at the first city
+// Initialize `traversal` with cityes' distance
+void init(map<int, array<double, MAX_CITIES>> &traversal,
+          const vector<tuple<string, int, int>> cities)
 {
-    for (int i = 0; i < numCities; i++)
-        traversal[1 << i] = 0;
+    for (int i = 0; i < cities.size(); i++) {
+        memset(traversal.at(1 << i), -1, MAX_CITIES);
+        traversal.at(1 << i).at(i) = getDistance(cities.at(0), cities.at(i));
+    }
 }
 
 // Use pipeline to put in the stdin, plz
@@ -70,14 +90,17 @@ int main()
 {
     int x, y;
     string name;
-    vector<tuple<string, int, int>> cities;
+    vector<tuple<string, int, int>> cities, records;
     while (cin >> name >> x >> y)
         cities.push_back(make_tuple(name, x, y));
+    sort(cities.begin(), cities.end());
 
-    init(cities.size());
+    // DP table
+    map<int, array<double, MAX_CITIES>> traversal;
+    init(traversal, cities);
 
-    result.first = dp(cities, 0, (1 << cities.size()) - 1);
+    auto result = dp(traversal, records, cities, 0, (1 << cities.size()) - 1);
 
-    output();
+    output(result);
     return 0;
 }
