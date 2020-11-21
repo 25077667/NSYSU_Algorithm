@@ -25,9 +25,9 @@ pair<double, vector<tuple<string, int, int>>> dp(
     int current,
     int recordMask)
 {
-    auto isRecorded = find(traversal.begin(), traversal.end(), recordMask);
-    if (isRecorded ^ traversal.end() &&
-        ~(isRecorded->second.at(current))) {  // found record
+    auto isRecorded = traversal.find(recordMask);
+    if (isRecorded != traversal.end() &&
+        isRecorded->second.at(current) != 0) {  // found record
         return make_pair(isRecorded->second.at(current), records);
     } else {
         double minPathLen = numeric_limits<double>::max();
@@ -36,29 +36,23 @@ pair<double, vector<tuple<string, int, int>>> dp(
             // The canonical algorithm is a loop counting zeros starting at the
             // LSB until a 1-bit is encountered
             auto ctz = __builtin_ctz(recordMask);
-            recordMask &= 1 << ctz;
+            recordMask &= ~(1 << ctz);
             auto [passPathLen, passCities] =
-                dp(traversal, records, cities, ctz, records);
+                dp(traversal, records, cities, ctz, recordMask);
             if (passPathLen < minPathLen) {
                 minPathLen = passPathLen;
                 minPath = passCities;
             }
         }
-        if (isRecorded ^ traversal.end()) {
+        if (isRecorded != traversal.end()) {
             auto mask = 1 << current;
-            auto toHead = getDistance(*records.begin(), cities.at(current));
-            auto toTail = getDistance(records.back(), cities.at(current));
-            if (toHead < toTail) {
-                traversal.at(recordMask | mask).at(current) =
-                    passPathLen + toHead;
-                records.insert(records.begin(), cities.at(current));
-            } else {
-                traversal.at(recordMask | mask).at(current) =
-                    passPathLen + toTail;
-                records.push_back(cities.at(current));
-            }
-            return make_pair(traversal.at(recordMask | mask).at(current),
-                             records);
+            traversal[recordMask | mask].at(current) =
+                minPathLen + ((records.size()) ? getDistance(records.back(),
+                                                             cities.at(current))
+                                               : 0);
+            records.push_back(cities.at(current));
+
+            return make_pair(traversal[recordMask | mask].at(current), records);
         } else
             return make_pair(minPathLen, minPath);
     }
@@ -80,8 +74,8 @@ void init(map<int, array<double, MAX_CITIES>> &traversal,
           const vector<tuple<string, int, int>> cities)
 {
     for (int i = 0; i < cities.size(); i++) {
-        memset(traversal.at(1 << i), -1, MAX_CITIES);
-        traversal.at(1 << i).at(i) = getDistance(cities.at(0), cities.at(i));
+        memset(&traversal[1 << i], 0, MAX_CITIES);
+        traversal[1 << i].at(i) = getDistance(cities.at(0), cities.at(i));
     }
 }
 
