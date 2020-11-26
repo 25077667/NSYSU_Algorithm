@@ -37,27 +37,28 @@ pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
 {
     auto isRecorded = traversal.find(recordMask);
     if (isRecorded != traversal.end() &&
-        isRecorded->second.at(current) != 0) {  // found record
+        isRecorded->second.at(current) != -1) {  // found record
         return make_pair(isRecorded->second.at(current), records);
     } else {
         double minPathLen = numeric_limits<double>::infinity();
-        int minMask = 0;
-        vector<City> minPath;
-        for (int i = 0;
-             i < cities.size() && ((1 << i) & recordMask) && i != current;
-             i++) {
-            auto [passPathLen, passCities] =
-                dp(traversal, records, cities, i, recordMask ^ (1 << current));
-            if (passPathLen < minPathLen) {
-                minPathLen = passPathLen;
-                minPath = passCities;
-                minMask = recordMask ^ (1 << current);
+        int minMask = recordMask;
+        vector<City> &minPath = records;
+        for (int i = 0; i < cities.size(); i++) {
+            if (((1 << i) & recordMask) && i != current) {
+                auto [passPathLen, passCities] = dp(
+                    traversal, minPath, cities, i, recordMask ^ (1 << current));
+                if (passPathLen < minPathLen) {
+                    minPathLen = passPathLen;
+                    minPath = passCities;
+                    minMask = recordMask ^ (1 << current);
+                }
             }
         }
 
         auto mask = 1 << current;
         auto origBack = (minPath.size() ? minPath.back() : cities.at(current));
         minPath.push_back(cities.at(current));
+        memset(&traversal[minMask | mask], -1, sizeof(double) * cities.size());
         traversal[minMask | mask].at(current) =
             getDistance(origBack, cities.at(current)) + minPathLen;
         return make_pair(traversal[minMask | mask].at(current), minPath);
@@ -80,7 +81,7 @@ void init(map<int, array<double, MAX_CITIES>> &traversal,
           const vector<City> cities)
 {
     for (int i = 0; i < cities.size(); i++) {
-        memset(&traversal[1 << i], 0, MAX_CITIES);
+        memset(&(traversal[1 << i][0]), -1, MAX_CITIES * sizeof(double));
         traversal[1 << i].at(i) = getDistance(cities.at(0), cities.at(i));
     }
 }
