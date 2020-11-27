@@ -35,11 +35,11 @@ pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
                               int current,
                               int recordMask)
 {
-    auto isRecorded = traversal.find(recordMask);
-    if (isRecorded != traversal.end() &&
-        isRecorded->second.at(current) != -1) {  // found record
-        return make_pair(isRecorded->second.at(current), records);
-    } else {
+    // auto isRecorded = traversal.find(recordMask);
+    // if (isRecorded != traversal.end() &&
+    //     abs(isRecorded->second.at(current) -1) > 1e-7) {  // found record
+    //     return make_pair(isRecorded->second.at(current), records);
+    // } else {
         double minPathLen = numeric_limits<double>::infinity();
         int minMask = recordMask;
         vector<City> &minPath = records;
@@ -55,14 +55,18 @@ pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
             }
         }
 
-        auto mask = 1 << current;
+        auto mask = ((1 << current) | minMask);
         auto origBack = (minPath.size() ? minPath.back() : cities.at(current));
         minPath.push_back(cities.at(current));
-        memset(&traversal[minMask | mask], -1, sizeof(double) * cities.size());
-        traversal[minMask | mask].at(current) =
+
+        if(traversal.find(mask) == traversal.end())
+            for (auto& j : traversal[mask])
+                j = -1; 
+
+        traversal[mask].at(current) =
             getDistance(origBack, cities.at(current)) + minPathLen;
-        return make_pair(traversal[minMask | mask].at(current), minPath);
-    }
+        return make_pair(traversal[mask].at(current), minPath);
+    //}
 }
 
 void output(const pair<double, vector<City>> result)
@@ -81,7 +85,8 @@ void init(map<int, array<double, MAX_CITIES>> &traversal,
           const vector<City> cities)
 {
     for (int i = 0; i < cities.size(); i++) {
-        memset(&(traversal[1 << i][0]), -1, MAX_CITIES * sizeof(double));
+        for (auto& j : traversal[1 << i])
+            j = -1;
         traversal[1 << i].at(i) = getDistance(cities.at(0), cities.at(i));
     }
 }
@@ -95,6 +100,7 @@ int main()
     while (cin >> name >> x >> y)
         cities.push_back(make_tuple(name, x, y));
     sort(cities.begin(), cities.end());
+    cities.push_back(cities[0]);
 
     // DP table
     map<int, array<double, MAX_CITIES>> traversal;
