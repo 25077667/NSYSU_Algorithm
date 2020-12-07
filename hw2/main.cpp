@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cmath>
 #include <cstring>
 #include <iostream>
@@ -13,6 +14,16 @@
 using namespace std;
 typedef tuple<string, int, int> City;
 
+
+void printTraversal(map<int, array<double, MAX_CITIES>> traversal)
+{
+    for (auto i : traversal) {
+        cout << "-------Mask: " << bitset<16>(i.first) << " -------\n";
+        for (auto j : i.second)
+            cout << j << endl;
+        cout << "------------------------" << endl;
+    }
+}
 
 inline double getDistance(City a, City b)
 {
@@ -34,19 +45,23 @@ pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
         return int(find(cities.begin(), cities.end(), c) - cities.begin());
     };
     auto backIndex = [&]() {
-        return (!records.empty()) ? city2index(records.back()) : 0;
+        return (!records.empty()) ? city2index(records.back()) : -1;
     };
 
     while (!cities.empty()) {
         auto bi = backIndex();
         // Turn off the last city in bit
-        auto prevMin = min_element(traversal[recordMask & (~(1 << bi))].begin(),
-                                   traversal[recordMask & (~(1 << bi))].end());
+        auto prevMin =
+            *min_element(traversal[recordMask & (~(1 << bi))].begin(),
+                         traversal[recordMask & (~(1 << bi))].end());
+        // init all as inf
+        for (auto &i : traversal[recordMask])
+            i = numeric_limits<double>::infinity();
 
         // Get all length of current
         for (auto iter = cities.begin(); iter != cities.end(); iter++)
             traversal[recordMask][iter - cities.begin()] =
-                *(prevMin) + getDistance(records.back(), *iter);
+                prevMin + getDistance(records.back(), *iter);
 
         auto currentMinIndex = min_element(traversal[recordMask].begin(),
                                            traversal[recordMask].end()) -
@@ -54,6 +69,15 @@ pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
         recordMask |= 1 << currentMinIndex;
         push2records(currentMinIndex);
     }
+
+    // Go back to origin
+
+    for (auto &dis : traversal[recordMask])
+        dis += getDistance(records.back(), records[0]);
+    records.push_back(records[0]);
+
+    // printTraversal(traversal);
+
     return make_pair(*min_element(traversal[recordMask].begin(),
                                   traversal[recordMask].end()),
                      records);
@@ -77,6 +101,8 @@ void init(map<int, array<double, MAX_CITIES>> &traversal,
 
     for (int i = 0; i < cities.size(); i++) {
         auto &distances = traversal[1 << i];
+        for (auto &j : distances)
+            j = numeric_limits<double>::infinity();  // init all as inf
         for (int j = 0; j < cities.size(); j++)
             distances[j] = getDistance(cities[i], cities[j]);
     }
@@ -95,6 +121,8 @@ int main()
     // DP table
     map<int, array<double, MAX_CITIES>> traversal;
     init(traversal, cities);
+
+    // printTraversal(traversal);
 
     auto result = dp(traversal, move(cities));
 
