@@ -34,6 +34,7 @@ pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
                               vector<City> &&cities)
 {
     vector<City> records;
+    const vector<City> cityCopy = cities;
     auto push2records = [&](int index) {
         records.push_back(cities[index]);
         cities.erase(cities.begin() + index);
@@ -42,7 +43,8 @@ pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
     int recordMask = 1;
 
     auto city2index = [&](City c) {
-        return int(find(cities.begin(), cities.end(), c) - cities.begin());
+        return int(find(cityCopy.begin(), cityCopy.end(), c) -
+                   cityCopy.begin());
     };
     auto backIndex = [&]() {
         return (!records.empty()) ? city2index(records.back()) : -1;
@@ -50,6 +52,7 @@ pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
 
     while (!cities.empty()) {
         auto bi = backIndex();
+        // cout << bi << ": " << get<0>(records.back()) << endl;
         // Turn off the last city in bit
         auto prevMin =
             *min_element(traversal[recordMask & (~(1 << bi))].begin(),
