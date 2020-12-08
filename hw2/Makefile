@@ -7,5 +7,8 @@ plot: all
 	rm exe_time
 	gnuplot plot.gp
 
+dbg: all
+	cat testFile/readfile.txt | ./main.elf
+
 clean:
 	rm -f *.elf output*
