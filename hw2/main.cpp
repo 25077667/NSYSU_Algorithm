@@ -74,7 +74,8 @@ vector<vector<City>> mask2city(int mask)
     return result;
 }
 
-int city2mask(vector<City> v) {
+int city2mask(vector<City> v)
+{
     int mask = 0;
     for (auto _city : v)
         mask |= 1 << city2index(_city);
