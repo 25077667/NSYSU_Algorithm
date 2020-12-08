@@ -26,8 +26,15 @@ vector<City> cities = {
 int city2index(City c)
 {
     return int(find(cities.begin(), cities.end(), c) - cities.begin());
-};
+}
 
+
+void printCities(vector<City> v)
+{
+    for (auto i : v)
+        cout << city2index(i) << " ";
+    cout << endl;
+}
 
 void printTraversal(map<int, pair<double, vector<City>>> traversal)
 {
@@ -65,18 +72,18 @@ vector<vector<City>> mask2city(int mask)
         result.push_back(subCities);
     } while (next_permutation(metaMask.begin(), metaMask.end()));
     return result;
-};
+}
+
+int city2mask(vector<City> v) {
+    int mask = 0;
+    for (auto _city : v)
+        mask |= 1 << city2index(_city);
+    return mask;
+}
 
 pair<double, vector<City>> dp(map<int, pair<double, vector<City>>> &traversal)
 {
     int recordMask = 7;
-
-    auto city2mask = [&](vector<City> v) {
-        int mask = 0;
-        for (auto _city : v)
-            mask |= 1 << city2index(_city);
-        return mask;
-    };
 
     while (recordMask != (1 << (cities.size() + 1)) - 1) {
         auto city_permutation = mask2city(recordMask);
@@ -92,10 +99,10 @@ pair<double, vector<City>> dp(map<int, pair<double, vector<City>>> &traversal)
             // Process the ring
             for (int j = 0; j < i.size(); j++) {
                 double cutLen =
-                    getDistance(cities[j], cities[(j + 1) % i.size()]);
+                    getDistance(oldPath[j], oldPath[(j + 1) % i.size()]);
                 double insertedLen =
-                    getDistance(cities[j], current) +
-                    getDistance(cities[(j + 1) % i.size()], current);
+                    getDistance(oldPath[j], current) +
+                    getDistance(oldPath[(j + 1) % i.size()], current);
                 auto currentLen = oldPathLen - cutLen + insertedLen;
                 if (currentLen < minPathLen) {
                     minInsertPoint = (j + 1) % i.size();
