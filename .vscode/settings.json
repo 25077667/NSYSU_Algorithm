@@ -2,6 +2,7 @@
     "files.associations": {
         "tuple": "cpp",
         "ratio": "cpp",
-        "array": "cpp"
+        "array": "cpp",
+        "iostream": "cpp"
     }
 }

@@ -13,6 +13,14 @@
 using namespace std;
 typedef tuple<string, int, int> City;
 
+vector<City> cities = {
+    /*
+     *
+     *
+     *
+     *
+     */
+};
 
 inline double getDistance(City a, City b)
 {
@@ -26,12 +34,10 @@ inline double getDistance(City a, City b)
 //             array of path length of each city would push_back to "viewed"
 //             cities.
 // @records: Record the current path of cities.
-// @cities: A const vector to get cities info from user.
 // @current: The current index of the city.
 // @recordMask: A mask to recording "viewed" cities.
 pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
                               vector<City> records,
-                              const vector<City> &cities,
                               int current,
                               int recordMask)
 {
@@ -45,8 +51,8 @@ pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
         vector<City> &minPath = records;
         for (int i = 0; i < cities.size(); i++) {
             if (((1 << i) & recordMask) && i != current) {
-                auto [passPathLen, passCities] = dp(
-                    traversal, minPath, cities, i, recordMask ^ (1 << current));
+                auto [passPathLen, passCities] =
+                    dp(traversal, minPath, i, recordMask ^ (1 << current));
                 if (passPathLen < minPathLen) {
                     minPathLen = passPathLen;
                     minPath = passCities;
@@ -97,7 +103,7 @@ int main()
 {
     int x, y;
     string name;
-    vector<City> cities, records;
+    vector<City> records;
     while (cin >> name >> x >> y)
         cities.push_back(make_tuple(name, x, y));
     sort(cities.begin(), cities.end());

@@ -14,13 +14,31 @@
 using namespace std;
 typedef tuple<string, int, int> City;
 
+vector<City> cities = {
+    /*
+     *
+     *
+     *
+     *
+     */
+};
 
-void printTraversal(map<int, array<double, MAX_CITIES>> traversal)
+int city2index(City c)
+{
+    return int(find(cities.begin(), cities.end(), c) - cities.begin());
+};
+
+
+void printTraversal(map<int, pair<double, vector<City>>> traversal)
 {
     for (auto i : traversal) {
         cout << "-------Mask: " << bitset<16>(i.first) << " -------\n";
-        for (auto j : i.second)
-            cout << j << endl;
+        auto [j, k] = i.second;
+        cout << j << ": ";
+        for (auto l : k)
+            cout << city2index(l) << " ";
+
+        cout << endl;
         cout << "------------------------" << endl;
     }
 }
@@ -30,60 +48,72 @@ inline double getDistance(City a, City b)
     return sqrt(pow(get<1>(a) - get<1>(b), 2) + pow(get<2>(a) - get<2>(b), 2));
 }
 
-pair<double, vector<City>> dp(map<int, array<double, MAX_CITIES>> &traversal,
-                              vector<City> &&cities)
+vector<vector<City>> mask2city(int mask)
 {
-    vector<City> records;
-    const vector<City> cityCopy = cities;
-    auto push2records = [&](int index) {
-        records.push_back(cities[index]);
-        cities.erase(cities.begin() + index);
+    vector<vector<City>> result;
+    vector<int> metaMask(cities.size(), 0);
+    int num = 0;
+
+    for (int i = 0; i < cities.size(); i++)
+        metaMask[i] += (mask >> i) & 1;
+    sort(metaMask.begin(), metaMask.end());
+    do {
+        vector<City> subCities;
+        for (auto iter = metaMask.begin(); iter != metaMask.end(); iter++)
+            if (*iter)
+                subCities.push_back(cities[iter - metaMask.begin()]);
+        result.push_back(subCities);
+    } while (next_permutation(metaMask.begin(), metaMask.end()));
+    return result;
+};
+
+pair<double, vector<City>> dp(map<int, pair<double, vector<City>>> &traversal)
+{
+    int recordMask = 7;
+
+    auto city2mask = [&](vector<City> v) {
+        int mask = 0;
+        for (auto _city : v)
+            mask |= 1 << city2index(_city);
+        return mask;
     };
-    push2records(0);
-    int recordMask = 1;
 
-    auto city2index = [&](City c) {
-        return int(find(cityCopy.begin(), cityCopy.end(), c) -
-                   cityCopy.begin());
-    };
-    auto backIndex = [&]() {
-        return (!records.empty()) ? city2index(records.back()) : -1;
-    };
+    while (recordMask != (1 << (cities.size() + 1)) - 1) {
+        auto city_permutation = mask2city(recordMask);
 
-    while (!cities.empty()) {
-        auto bi = backIndex();
-        // cout << bi << ": " << get<0>(records.back()) << endl;
-        // Turn off the last city in bit
-        auto prevMin =
-            *min_element(traversal[recordMask & (~(1 << bi))].begin(),
-                         traversal[recordMask & (~(1 << bi))].end());
-        // init all as inf
-        for (auto &i : traversal[recordMask])
-            i = numeric_limits<double>::infinity();
+        for (auto i : city_permutation) {
+            auto minPathLen = numeric_limits<double>::infinity();
+            int minInsertPoint = 0;
 
-        // Get all length of current
-        for (auto iter = cities.begin(); iter != cities.end(); iter++)
-            traversal[recordMask][iter - cities.begin()] =
-                prevMin + getDistance(records.back(), *iter);
+            auto current = i.back();
+            i.pop_back();
 
-        auto currentMinIndex = min_element(traversal[recordMask].begin(),
-                                           traversal[recordMask].end()) -
-                               traversal[recordMask].begin();
-        recordMask |= 1 << currentMinIndex;
-        push2records(currentMinIndex);
+            auto [oldPathLen, oldPath] = traversal[city2mask(i)];
+            // Process the ring
+            for (int j = 0; j < i.size(); j++) {
+                double cutLen =
+                    getDistance(cities[j], cities[(j + 1) % i.size()]);
+                double insertedLen =
+                    getDistance(cities[j], current) +
+                    getDistance(cities[(j + 1) % i.size()], current);
+                auto currentLen = oldPathLen - cutLen + insertedLen;
+                if (currentLen < minPathLen) {
+                    minInsertPoint = (j + 1) % i.size();
+                    minPathLen = currentLen;
+                }
+            }
+            oldPath.insert(oldPath.begin() + minInsertPoint, current);
+
+            // Put to traversal table
+            traversal[city2mask(oldPath)] = make_pair(minPathLen, oldPath);
+            // cout << "::: " << bitset<16>(city2mask(oldPath)) << endl;
+        }
+        // Update the recordMask
+        recordMask = (recordMask << 1) | 1;
     }
 
-    // Go back to origin
-
-    for (auto &dis : traversal[recordMask])
-        dis += getDistance(records.back(), records[0]);
-    records.push_back(records[0]);
-
-    // printTraversal(traversal);
-
-    return make_pair(*min_element(traversal[recordMask].begin(),
-                                  traversal[recordMask].end()),
-                     records);
+    // Return
+    return traversal[recordMask >> 1];
 }
 
 void output(const pair<double, vector<City>> result)
@@ -91,23 +121,25 @@ void output(const pair<double, vector<City>> result)
     for (auto i : result.second)
         cout << get<0>(i) << " " << get<1>(i) << " " << get<2>(i) << endl;
 
+    cout << get<0>(result.second[0]) << " " << get<1>(result.second[0]) << " "
+         << get<2>(result.second[0]) << endl;
     cout << endl << "Minimal length of path: " << result.first << endl;
 }
 
 // Suppose starts at the first city
 // Initialize `traversal` with cityes' distance
-void init(map<int, array<double, MAX_CITIES>> &traversal,
-          const vector<City> cities)
+void init(map<int, pair<double, vector<City>>> &traversal)
 {
-    // Init no any city is 0
-    traversal[0] = {0};
-
+    traversal[0] = make_pair(0, vector<City>());
     for (int i = 0; i < cities.size(); i++) {
-        auto &distances = traversal[1 << i];
-        for (auto &j : distances)
-            j = numeric_limits<double>::infinity();  // init all as inf
-        for (int j = 0; j < cities.size(); j++)
-            distances[j] = getDistance(cities[i], cities[j]);
+        traversal[1 << i] = make_pair(0, vector<City>(1, cities[i]));
+        for (int j = 0; j < cities.size(); j++) {
+            if (i != j) {
+                traversal[(1 << i) | (1 << j)] =
+                    make_pair(getDistance(cities[i], cities[j]) * 2,
+                              vector<City>({cities[i], cities[j]}));
+            }
+        }
     }
 }
 
@@ -116,18 +148,18 @@ int main()
 {
     int x, y;
     string name;
-    vector<City> cities, records;
+
     while (cin >> name >> x >> y)
         cities.push_back(make_tuple(name, x, y));
     sort(cities.begin(), cities.end());
 
     // DP table
-    map<int, array<double, MAX_CITIES>> traversal;
-    init(traversal, cities);
+    map<int, pair<double, vector<City>>> traversal;
+    init(traversal);
 
     // printTraversal(traversal);
 
-    auto result = dp(traversal, move(cities));
+    auto result = dp(traversal);
 
     output(result);
     return 0;
