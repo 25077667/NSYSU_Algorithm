@@ -14,20 +14,12 @@
 using namespace std;
 typedef tuple<string, int, int> City;
 
-vector<City> cities = {
-    /*
-     *
-     *
-     *
-     *
-     */
-};
+vector<City> cities = {/**/};
 
 int city2index(City c)
 {
     return int(find(cities.begin(), cities.end(), c) - cities.begin());
 }
-
 
 void printCities(vector<City> v)
 {
@@ -156,13 +148,11 @@ void init(map<int, pair<double, vector<City>>> &traversal)
     traversal[0] = make_pair(0, vector<City>());
     for (int i = 0; i < cities.size(); i++) {
         traversal[1 << i] = make_pair(0, vector<City>(1, cities[i]));
-        for (int j = 0; j < cities.size(); j++) {
-            if (i != j) {
+        for (int j = 0; j < cities.size(); j++)
+            if (i != j)
                 traversal[(1 << i) | (1 << j)] =
                     make_pair(getDistance(cities[i], cities[j]) * 2,
                               vector<City>({cities[i], cities[j]}));
-            }
-        }
     }
 }
 
@@ -179,8 +169,6 @@ int main()
     // DP table
     map<int, pair<double, vector<City>>> traversal;
     init(traversal);
-
-    // printTraversal(traversal);
 
     auto result = dp(traversal);
 

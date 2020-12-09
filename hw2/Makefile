@@ -1,5 +1,5 @@
 all: 
-	g++ main.cpp -g -std=c++17 -o main.elf -fsanitize=address
+	g++ main.cpp -g -Os -Ofast -std=c++2a -o main.elf
 
 plot: all
 	$(shell time -f '%es' -o exe_time bash -c 'cat testFile/readfile.txt | ./main.elf > output.txt')
