@@ -91,29 +91,44 @@ pair<double, vector<City>> dp(map<int, pair<double, vector<City>>> &traversal)
 
         for (auto i : city_permutation) {
             auto minPathLen = numeric_limits<double>::infinity();
+            vector<City> minPath;
             int minInsertPoint = 0;
 
-            auto current = i.back();
-            i.pop_back();
+            for (int k = 0; k < i.size(); k++) {
+                auto minRingLen = numeric_limits<double>::infinity();
+                vector<City> minRingPath;
+                int minRingPoint = 0;
 
-            auto [oldPathLen, oldPath] = traversal[city2mask(i)];
-            // Process the ring
-            for (int j = 0; j < i.size(); j++) {
-                double cutLen =
-                    getDistance(oldPath[j], oldPath[(j + 1) % i.size()]);
-                double insertedLen =
-                    getDistance(oldPath[j], current) +
-                    getDistance(oldPath[(j + 1) % i.size()], current);
-                auto currentLen = oldPathLen - cutLen + insertedLen;
-                if (currentLen < minPathLen) {
-                    minInsertPoint = (j + 1) % i.size();
-                    minPathLen = currentLen;
+                // Get item temperary
+                auto current = i[k];
+                // Erase item temperary
+                i.erase(i.begin() + k);
+
+                auto [oldPathLen, oldPath] = traversal[city2mask(i)];
+                // Process the ring
+                for (int j = 0; j < i.size(); j++) {
+                    double cutLen =
+                        getDistance(oldPath[j], oldPath[(j + 1) % i.size()]);
+                    double insertedLen =
+                        getDistance(oldPath[j], current) +
+                        getDistance(oldPath[(j + 1) % i.size()], current);
+                    auto currentLen = oldPathLen - cutLen + insertedLen;
+                    if (currentLen < minRingLen) {
+                        minRingPoint = (j + 1) % i.size();
+                        minRingLen = currentLen;
+                    }
                 }
-            }
-            oldPath.insert(oldPath.begin() + minInsertPoint, current);
 
+                if (minRingLen < minPathLen) {
+                    oldPath.insert(oldPath.begin() + minRingPoint, current);
+                    minPath = oldPath;
+                    minPathLen = minRingLen;
+                }
+                // Put temperary item back
+                i.insert(i.begin() + k, current);
+            }
             // Put to traversal table
-            traversal[city2mask(oldPath)] = make_pair(minPathLen, oldPath);
+            traversal[city2mask(minPath)] = make_pair(minPathLen, minPath);
             // cout << "::: " << bitset<16>(city2mask(oldPath)) << endl;
         }
         // Update the recordMask
