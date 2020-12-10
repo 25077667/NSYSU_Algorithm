@@ -15,6 +15,7 @@ using namespace std;
 #define END_TEMP 0.0001
 #define LAMBDA 0.97
 #define ITER_TIMES 512
+#define SWAP_THRESHOLD 0.01
 
 typedef tuple<string, int, int> City;
 
@@ -80,7 +81,7 @@ pair<double, vector<City>> sa(vector<City> &&cities)
             auto [newLen, oldLen] =
                 make_pair(getPathLen(newState), getPathLen(cities));
             // printCities(newState);
-            if (newLen < oldLen || getRand() < END_TEMP) {
+            if (newLen < oldLen || getRand() < SWAP_THRESHOLD * ct) {
                 cities.swap(newState);
                 minLen = newLen;
             }
