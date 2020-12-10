@@ -6,7 +6,8 @@
         "iostream": "cpp",
         "*.tcc": "c",
         "random": "c",
-        "coroutine": "cpp"
+        "coroutine": "cpp",
+        "future": "cpp"
     },
     "cSpell.ignoreWords": [
         "cppcoro"

@@ -1,21 +1,24 @@
+#include <sys/sysinfo.h>  // nproc
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <future>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <random>
+#include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 using namespace std;
 
-#define INIT_TEMP 100
+#define INIT_TEMP 1000
 #define END_TEMP 0.0001
 #define LAMBDA 0.97
 #define ITER_TIMES 512
-#define SWAP_THRESHOLD 0.01
+#define SWAP_THRESHOLD (1 / INIT_TEMP)
 
 typedef tuple<string, int, int> City;
 
@@ -72,7 +75,7 @@ static vector<City> _permutation(vector<City> currentState)
     return currentState;
 }
 
-pair<double, vector<City>> sa(vector<City> &&cities)
+pair<double, vector<City>> sa(vector<City> cities)
 {
     double minLen = numeric_limits<double>::infinity();
     for (double ct = INIT_TEMP; ct > END_TEMP; ct *= LAMBDA) {
@@ -100,8 +103,17 @@ int main()
         cities.push_back(make_tuple(name, x, y));
     sort(cities.begin(), cities.end());
 
-    auto result = sa(move(cities));
-    output(result);
+    vector<pair<double, vector<City>>> ansPool;
+    vector<future<pair<double, vector<City>>>> threadPool(get_nprocs());
+
+    for (auto &i : threadPool)
+        i = async(sa, cities);
+
+    for (auto iter = threadPool.begin(); iter != threadPool.end(); iter++)
+        ansPool.push_back((*iter).get());
+
+    sort(ansPool.begin(), ansPool.end());
+    output(ansPool[0]);
 
     return 0;
 }
