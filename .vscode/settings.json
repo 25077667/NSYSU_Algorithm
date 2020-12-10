@@ -3,6 +3,12 @@
         "tuple": "cpp",
         "ratio": "cpp",
         "array": "cpp",
-        "iostream": "cpp"
-    }
+        "iostream": "cpp",
+        "*.tcc": "c",
+        "random": "c",
+        "coroutine": "cpp"
+    },
+    "cSpell.ignoreWords": [
+        "cppcoro"
+    ]
 }
