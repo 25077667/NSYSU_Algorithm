@@ -10,6 +10,8 @@
         "future": "cpp"
     },
     "cSpell.ignoreWords": [
-        "cppcoro"
+        "cppcoro",
+        "displaystyle",
+        "xvalue"
     ]
 }
