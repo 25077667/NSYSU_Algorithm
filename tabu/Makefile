@@ -1,11 +1,11 @@
 CC   = g++
-CFLAGS = -Wall -Ofast -Os -std=c++2a
+CFLAGS = -Wall -Ofast -Os -std=c++20
 
 all: 
 	$(CC) $(CFLAGS) main.cpp -o main.elf
 
 plot: dbg
-	$(shell time -f '%es' -o exe_time bash -c "cat ${TEST_FILE} | ./main.elf > output.txt")
+	$(shell time -f '%es' -o exe_time bash -c "./main.elf > out.txt")
 	cat exe_time >> output.txt
 	rm exe_time
 	gnuplot plot.gp
