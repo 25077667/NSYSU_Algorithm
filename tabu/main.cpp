@@ -177,22 +177,27 @@ auto tabu(list<City> cities)
     return cities;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    ifstream ifs("eil51.tsp", ifstream::in);
+    if (argc < 2) {
+        cerr << "./main.elf <eil51.tsp>" << endl;
+        exit(1);
+    }
+
+    ifstream ifs(argv[1], ifstream::in);
     auto cities = get_cities(ifs);
     ifs.close();
 
     // run greedy first
-    list<City> sol = greedy(cities); // 513.61
+    list<City> sol = greedy(cities);  // 513.61
     sol = tabu(sol);
 
-    #ifndef __DBG__
-    #define OUTPUT(x) print_cities(x)
-    #else
-    #define OUTPUT(x) print_graph(x)
-    #endif
-    
+#ifndef __DBG__
+#define OUTPUT(x) print_cities(x)
+#else
+#define OUTPUT(x) print_graph(x)
+#endif
+
     OUTPUT(sol);
 
     cout << detial::get_path_len(sol) << endl;
