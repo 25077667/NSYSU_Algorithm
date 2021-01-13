@@ -43,7 +43,7 @@ void print_graph(list<City> v)
          << get<2>(v.front()) << "\n";
 }
 
-namespace detial
+namespace detail
 {
 inline double get_distance(City a, City b) noexcept
 {
@@ -89,7 +89,7 @@ pair<list<City>, list<City>> split(list<City> cities)
     return make_pair(one, other);
 }
 
-};  // namespace detial
+};  // namespace detail
 
 list<City> greedy(list<City> cities)
 {
@@ -101,8 +101,8 @@ list<City> greedy(list<City> cities)
         auto min_iter = min_element(
             l.begin(), l.end(),
             [&last = as_const(rec.back())](const City &c1, const City &c2) {
-                return detial::get_distance(last, c1) <
-                       detial::get_distance(last, c2);
+                return detail::get_distance(last, c1) <
+                       detail::get_distance(last, c2);
             });
 
         rec.splice(rec.end(), l, min_iter);
@@ -113,16 +113,16 @@ list<City> greedy(list<City> cities)
 list<City> find_near(list<City> cities)
 {
     // split into 2 list
-    auto [one, another] = detial::split(cities);
+    auto [one, another] = detail::split(cities);
     // greedy gen path
     auto left = greedy(one);
     auto right = greedy(another);
 
     // concate
-    double tail_head = detial::get_distance(left.back(), right.front()) +
-                       detial::get_distance(left.front(), right.back()),
-           tail_tail = detial::get_distance(left.back(), right.back()) +
-                       detial::get_distance(left.front(), right.front());
+    double tail_head = detail::get_distance(left.back(), right.front()) +
+                       detail::get_distance(left.front(), right.back()),
+           tail_tail = detail::get_distance(left.back(), right.back()) +
+                       detail::get_distance(left.front(), right.front());
 
     if (tail_head < tail_tail)
         left.insert(left.end(), right.begin(), right.end());
@@ -139,7 +139,7 @@ auto find_near_best(list<City> cities)
 
     for (int i = 0; i < LIST_SIZE; i++) {
         list<City> tmp_sol = find_near(cities);
-        auto tmp_sol_len = detial::get_path_len(tmp_sol);
+        auto tmp_sol_len = detail::get_path_len(tmp_sol);
         if (tmp_sol_len < _sol_len) {
             _sol_len = tmp_sol_len;
             _sol = move(tmp_sol);
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 
     OUTPUT(sol);
 
-    cout << detial::get_path_len(sol) << endl;
+    cout << detail::get_path_len(sol) << endl;
 
     return 0;
 }
